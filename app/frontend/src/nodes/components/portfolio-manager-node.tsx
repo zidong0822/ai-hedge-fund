@@ -1,7 +1,7 @@
 import { ModelSelector } from '@/components/ui/llm-selector';
 import { getConnectedEdges, useReactFlow, type NodeProps } from '@xyflow/react';
-import { Brain, Loader2, Play } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { Brain, Play, Square } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,8 @@ import { CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useNodeContext } from '@/contexts/node-context';
-import { apiModels, defaultModel, mapProviderToEnum, ModelItem } from '@/data/models';
+import { getDefaultModel, getModels, LanguageModel } from '@/data/models';
+import { useNodeState } from '@/hooks/use-node-state';
 import { api } from '@/services/api';
 import { type PortfolioManagerNode } from '../types';
 import { NodeShell } from './node-shell';
@@ -20,16 +21,17 @@ export function PortfolioManagerNode({
   id,
   isConnectable,
 }: NodeProps<PortfolioManagerNode>) {
-  const [tickers, setTickers] = useState('');
-  const [selectedModel, setSelectedModel] = useState<ModelItem | null>(defaultModel);
-  
   // Calculate default dates
   const today = new Date();
   const threeMonthsAgo = new Date(today);
   threeMonthsAgo.setMonth(today.getMonth() - 3);
   
-  const [startDate, setStartDate] = useState(threeMonthsAgo.toISOString().split('T')[0]);
-  const [endDate, setEndDate] = useState(today.toISOString().split('T')[0]);
+  // Use persistent state hooks
+  const [tickers, setTickers] = useNodeState(id, 'tickers', 'AAPL,NVDA,TSLA');
+  const [selectedModel, setSelectedModel] = useNodeState<LanguageModel | null>(id, 'selectedModel', null);
+  const [availableModels, setAvailableModels] = useNodeState<LanguageModel[]>(id, 'availableModels', []);
+  const [startDate, setStartDate] = useNodeState(id, 'startDate', threeMonthsAgo.toISOString().split('T')[0]);
+  const [endDate, setEndDate] = useNodeState(id, 'endDate', today.toISOString().split('T')[0]);
   
   const nodeContext = useNodeContext();
   const { resetAllNodes, agentNodeData } = nodeContext;
@@ -41,6 +43,29 @@ export function PortfolioManagerNode({
     agent => agent.status === 'IN_PROGRESS'
   );
   
+  // Load models and set default on mount
+  useEffect(() => {
+    const loadModels = async () => {
+      try {
+        const [models, defaultModel] = await Promise.all([
+          getModels(),
+          getDefaultModel()
+        ]);
+        setAvailableModels(models);
+        
+        // Only set default model if no model is currently selected
+        if (!selectedModel && defaultModel) {
+          setSelectedModel(defaultModel);
+        }
+      } catch (error) {
+        console.error('Failed to load models:', error);
+        // Keep empty array and null as fallback
+      }
+    };
+    
+    loadModels();
+  }, []); // Remove selectedModel from dependencies to avoid infinite loop
+
   // Clean up SSE connection on unmount
   useEffect(() => {
     return () => {
@@ -60,6 +85,15 @@ export function PortfolioManagerNode({
 
   const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEndDate(e.target.value);
+  };
+
+  const handleStop = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current();
+      abortControllerRef.current = null;
+    }
+    // Reset all node data states
+    resetAllNodes();
   };
 
   const handlePlay = () => {
@@ -106,7 +140,7 @@ export function PortfolioManagerNode({
         agentModels.push({
           agent_id: agentId,
           model_name: model.model_name,
-          model_provider: mapProviderToEnum(model.provider)
+          model_provider: model.provider as any
         });
       }
     }
@@ -162,11 +196,11 @@ export function PortfolioManagerNode({
                     size="icon" 
                     variant="secondary"
                     className="flex-shrink-0 transition-all duration-200 hover:bg-primary hover:text-primary-foreground active:scale-95"
-                    onClick={handlePlay}
-                    disabled={isProcessing || !tickers.trim()}
+                    onClick={isProcessing ? handleStop : handlePlay}
+                    disabled={!isProcessing && !tickers.trim()}
                   >
                     {isProcessing ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      <Square className="h-3.5 w-3.5" />
                     ) : (
                       <Play className="h-3.5 w-3.5" />
                     )}
@@ -178,7 +212,7 @@ export function PortfolioManagerNode({
                   Model
                 </div>
                 <ModelSelector
-                  models={apiModels}
+                  models={availableModels}
                   value={selectedModel?.model_name || ""}
                   onChange={setSelectedModel}
                   placeholder="Select a model..."

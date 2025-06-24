@@ -1,22 +1,26 @@
+import ComponentItem from '@/components/sidebar/component-item';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useFlowContext } from '@/contexts/flow-context';
-import { ComponentGroup, ComponentItem } from '@/data/sidebar-components';
-import { SidebarItem } from './sidebar-item';
+import { ComponentGroup } from '@/data/sidebar-components';
 
-interface SidebarItemGroupProps {
+interface ComponentItemGroupProps {
   group: ComponentGroup;
   activeItem: string | null;
 }
 
-export function SidebarItemGroup({ 
+export function ComponentItemGroup({ 
   group, 
   activeItem
-}: SidebarItemGroupProps) {
+}: ComponentItemGroupProps) {
   const { name, icon: Icon, iconColor, items } = group;
   const { addComponentToFlow } = useFlowContext();
 
-  const handleItemClick = (componentName: string) => {
-    addComponentToFlow(componentName);
+  const handleItemClick = async (componentName: string) => {
+    try {
+      await addComponentToFlow(componentName);
+    } catch (error) {
+      console.error('Failed to add component to flow:', error);
+    }
   };
   
   return (
@@ -29,8 +33,8 @@ export function SidebarItemGroup({
       </AccordionTrigger>
       <AccordionContent className="px-4">
         <div className="space-y-1">
-          {items.map((item: ComponentItem) => (
-            <SidebarItem 
+          {items.map((item) => (
+            <ComponentItem 
               key={item.name}
               icon={item.icon} 
               label={item.name} 

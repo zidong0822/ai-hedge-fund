@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/table';
 import { ArrowDown, ArrowUp, Minus } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface InvestmentReportDialogProps {
   isOpen: boolean;
@@ -143,7 +143,7 @@ export function InvestmentReportDialog({
                               <div className="max-h-32 overflow-y-auto">
                                 <SyntaxHighlighter
                                   language="json"
-                                  style={oneDark}
+                                  style={vscDarkPlus}
                                   className="text-xs rounded-md"
                                   customStyle={{
                                     fontSize: '0.75rem',
@@ -165,7 +165,6 @@ export function InvestmentReportDialog({
               </CardContent>
             </Card>
           </section>
-
           {/* Analyst Signals Section */}
           <section>
             <h2 className="text-lg font-semibold mb-4">Analyst Signals</h2>
@@ -210,10 +209,10 @@ export function InvestmentReportDialog({
                                     {signal.reasoning}
                                   </p>
                                 ) : (
-                                  <div className="max-h-48 overflow-y-auto">
+                                  <div className="max-h-48 overflow-y-auto bg-muted/30">
                                     <SyntaxHighlighter
                                       language="json"
-                                      style={oneDark}
+                                      style={vscDarkPlus}
                                       className="text-sm rounded-md"
                                       customStyle={{
                                         fontSize: '0.875rem',

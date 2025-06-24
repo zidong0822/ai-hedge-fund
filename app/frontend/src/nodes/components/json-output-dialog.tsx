@@ -1,7 +1,7 @@
 import { Copy, Download } from 'lucide-react';
 import { useState } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -91,18 +91,16 @@ export function JsonOutputDialog({
         <div className="flex-1 min-h-0 my-4 overflow-auto rounded-md border border-border bg-muted/30">
           <SyntaxHighlighter
             language="json"
-            style={oneDark}
+            style={vscDarkPlus}
             customStyle={{
               margin: 0,
-              padding: '1rem',
+              padding: '0.75rem',
               fontSize: '0.875rem',
               lineHeight: 1.5,
-              backgroundColor: 'transparent',
               whiteSpace: 'pre-wrap',
               wordWrap: 'break-word',
               overflowWrap: 'break-word',
             }}
-            showLineNumbers={true}
             wrapLines={true}
             wrapLongLines={true}
           >

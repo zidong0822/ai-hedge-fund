@@ -71,7 +71,6 @@ export function InvestmentReportNode({
           </div>
         </CardContent>
       </NodeShell>
-
       <InvestmentReportDialog 
         isOpen={showOutput} 
         onOpenChange={setShowOutput} 
