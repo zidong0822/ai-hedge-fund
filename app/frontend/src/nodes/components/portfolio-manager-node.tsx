@@ -10,7 +10,9 @@ import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useNodeContext } from '@/contexts/node-context';
 import { getDefaultModel, getModels, LanguageModel } from '@/data/models';
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { useNodeState } from '@/hooks/use-node-state';
+import { formatKeyboardShortcut } from '@/lib/utils';
 import { api } from '@/services/api';
 import { type PortfolioManagerNode } from '../types';
 import { NodeShell } from './node-shell';
@@ -42,6 +44,26 @@ export function PortfolioManagerNode({
   const isProcessing = Object.values(agentNodeData).some(
     agent => agent.status === 'IN_PROGRESS'
   );
+  
+  // Check if the hedge fund can be run (same logic as play button enable state)
+  const canRunHedgeFund = !isProcessing && tickers.trim() !== '';
+  
+  // Add keyboard shortcut for Cmd+Enter / Ctrl+Enter to run hedge fund
+  useKeyboardShortcuts({
+    shortcuts: [
+      {
+        key: 'Enter',
+        ctrlKey: true,
+        metaKey: true,
+        callback: () => {
+          if (canRunHedgeFund) {
+            handlePlay();
+          }
+        },
+        preventDefault: true,
+      },
+    ],
+  });
   
   // Load models and set default on mount
   useEffect(() => {
@@ -196,8 +218,9 @@ export function PortfolioManagerNode({
                     size="icon" 
                     variant="secondary"
                     className="flex-shrink-0 transition-all duration-200 hover:bg-primary hover:text-primary-foreground active:scale-95"
+                    title={isProcessing ? "Stop" : `Run (${formatKeyboardShortcut('↵')})`}
                     onClick={isProcessing ? handleStop : handlePlay}
-                    disabled={!isProcessing && !tickers.trim()}
+                    disabled={!canRunHedgeFund && !isProcessing}
                   >
                     {isProcessing ? (
                       <Square className="h-3.5 w-3.5" />

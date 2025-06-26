@@ -4,10 +4,10 @@ import { cn } from '@/lib/utils';
 import { flowService } from '@/services/flow-service';
 import { Flow } from '@/types/flow';
 import {
-    Calendar,
-    FileText,
-    Layout,
-    MoreHorizontal
+  Calendar,
+  FileText,
+  Layout,
+  MoreHorizontal
 } from 'lucide-react';
 import { useState } from 'react';
 import { FlowContextMenu } from './flow-context-menu';
