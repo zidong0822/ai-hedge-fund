@@ -1,0 +1,23 @@
+# 前端Dockerfile - 用于构建React/Vite应用
+FROM node:18-alpine
+
+WORKDIR /app
+
+# 复制package文件以利用Docker层缓存
+COPY app/frontend/package*.json ./
+
+# 安装依赖
+RUN npm install
+
+# 复制前端源码
+COPY app/frontend/ ./
+
+# 暴露端口
+EXPOSE 5173
+
+# 配置Vite以允许外部访问
+ENV HOST=0.0.0.0
+ENV PORT=5173
+
+# 启动开发服务器
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"] 
