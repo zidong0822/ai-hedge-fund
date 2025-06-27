@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   # 前端服务
@@ -10,8 +10,10 @@ services:
       - "5173:5173"
     environment:
       - NODE_ENV=development
-      - VITE_API_URL=http://localhost:8000
+      - VITE_API_URL=http://backend:8000
     restart: unless-stopped
+    depends_on:
+      - backend
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5173"]
       interval: 30s
@@ -28,7 +30,7 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - PYTHONPATH=/app
-      - CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+      - CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,http://frontend:5173
     env_file:
       - .env
     restart: unless-stopped
@@ -40,4 +42,4 @@ services:
 
 networks:
   default:
-    name: ai-hedge-fund-network 
+    name: ai-hedge-fund-network
