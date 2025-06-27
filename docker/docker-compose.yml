@@ -98,5 +98,31 @@ services:
     tty: true
     stdin_open: true
 
+  # 添加前端服务（使用Node镜像）
+  frontend:
+    image: node:18-alpine
+    working_dir: /app
+    ports:
+      - "5173:5173"
+    volumes:
+      - ../app/frontend:/app
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    restart: unless-stopped
+
+  # 添加后端API服务
+  backend-api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../.env:/app/.env
+    command: poetry run uvicorn app.backend.main:app --host 0.0.0.0 --port 8000 --reload
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
+    restart: unless-stopped
+
 volumes:
-  ollama_data: 
+  ollama_data:
